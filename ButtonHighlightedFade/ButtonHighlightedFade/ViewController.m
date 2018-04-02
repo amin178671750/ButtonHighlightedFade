@@ -67,12 +67,14 @@
             case 5:
             {
                 title = @"变紫";
+                button.diffusionAnimated = YES;
                 [button addHighlightedFadeColor:[UIColor purpleColor] alpha:0.5f];
             }
                 break;
             case 6:
             {
                 title = @"变红";
+                button.diffusionAnimated = YES;
                 [button addHighlightedFadeColor:[UIColor redColor] alpha:1.0f];
             }
                 break;

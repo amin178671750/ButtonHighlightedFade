@@ -12,15 +12,20 @@
 static const void *LGHighlightedFadeAlpha = &LGHighlightedFadeAlpha;
 static const void *LGHighlightedOriginalAlpha = &LGHighlightedOriginalAlpha;
 static const void *LGHighlightedFadeView = &LGHighlightedFadeView;
+static const void *LGDiffusionAnimated = &LGDiffusionAnimated;
+
+#define floatAnimationDuration 0.5f
 
 @implementation UIButton (HighlightedFade)
+
+@dynamic diffusionAnimated;
 
 - (void)addHighlightedFadeAlpha:(CGFloat)alpha
 {
     [self lg_setHighlightedFadeAlpha:alpha];
     
     [self addTarget:self
-             action:@selector(lg_highlightedFadeButton:)
+             action:@selector(lg_highlightedFadeButton:events:)
    forControlEvents:[UIButton lg_highlightedEvent]];
     [self addTarget:self
              action:@selector(lg_cancelHighlightedFadeButton:)
@@ -44,7 +49,7 @@ static const void *LGHighlightedFadeView = &LGHighlightedFadeView;
 
 - (void)addHighlightedFadeGray
 {
-    [self addHighlightedFadeColor:[UIColor grayColor] alpha:0.5f];
+    [self addHighlightedFadeColor:[UIColor grayColor] alpha:0.3f];
 }
 
 - (void)addHighlightedFadeColor:(UIColor *)color alpha:(CGFloat)alpha
@@ -65,23 +70,35 @@ static const void *LGHighlightedFadeView = &LGHighlightedFadeView;
     
     //移除点击方法
     [self removeTarget:self
-                action:@selector(lg_cancelHighlightedFadeButton:)
+                action:@selector(lg_highlightedFadeButton:events:)
       forControlEvents:[UIButton lg_highlightedEvent]];
     [self removeTarget:self
                 action:@selector(lg_cancelHighlightedFadeButton:)
       forControlEvents:[UIButton lg_cancelHighlightedEvent]];
 }
 
+#pragma mark - CAAnimationDelegate
+
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+{
+    UIView *fadeView = [self lg_highlightedFadeView];
+    if (fadeView) {
+        fadeView.layer.cornerRadius = self.layer.cornerRadius;
+    }
+}
+
 #pragma mark - Events
 
-- (void)lg_highlightedFadeButton:(UIButton *)button
+- (void)lg_highlightedFadeButton:(UIButton *)button events:(UIEvent *)events
 {
-    [self lg_changeFadeWithHighlighted:YES];
+    UITouch *touch = [[events touchesForView:button] anyObject];
+    CGPoint point = [touch locationInView:button];
+    [self lg_changeFadeWithHighlighted:YES touchPoint:point];
 }
 
 - (void)lg_cancelHighlightedFadeButton:(UIButton *)button
 {
-    [self lg_changeFadeWithHighlighted:NO];
+    [self lg_changeFadeWithHighlighted:NO touchPoint:CGPointZero];
 }
 
 #pragma mark - Private
@@ -96,15 +113,27 @@ static const void *LGHighlightedFadeView = &LGHighlightedFadeView;
     return UIControlEventTouchDragExit | UIControlEventTouchUpInside | UIControlEventTouchCancel;
 }
 
-- (void)lg_changeFadeWithHighlighted:(BOOL)highlighted
+- (void)lg_changeFadeWithHighlighted:(BOOL)highlighted touchPoint:(CGPoint)touchPoint
 {
     UIView *fadeView = [self lg_highlightedFadeView] ?: self;
     if (highlighted) {
         //取消高亮的时候需要用到原始透明度
         [self lg_setHighlightedOriginalAlpha:fadeView.alpha];
+        
+        BOOL isNotSelf = fadeView != self;
+        //刷新位置，前置
+        if (isNotSelf) {
+            [self refreshFadeFrameWithView:fadeView];
+            [self bringSubviewToFront:fadeView];
+        }
+        
+        //添加扩散动画
+        if (self.diffusionAnimated && isNotSelf) {
+            [self addDiffusionAnimationWithFadeView:fadeView touchPoint:touchPoint];
+        }
     }
     
-    [UIView animateWithDuration:0.3f animations:^{
+    [UIView animateWithDuration:floatAnimationDuration animations:^{
         CGFloat alpha = highlighted ? [self lg_highlightedFadeAlpha] : [self lg_highlightedOriginalAlpha];
         fadeView.alpha = alpha;
     }];
@@ -112,16 +141,96 @@ static const void *LGHighlightedFadeView = &LGHighlightedFadeView;
 
 - (void)highlightFadeViewWithColor:(UIColor *)color {
     UIView *fadeView = [self lg_highlightedFadeView] ?: [[UIView alloc] init];
-    fadeView.frame = self.bounds;
     fadeView.backgroundColor = color;
     fadeView.alpha = 0.0f;
+    fadeView.layer.masksToBounds = YES;
+    [self refreshFadeFrameWithView:fadeView];
     
     [self addSubview:fadeView];
     [self bringSubviewToFront:fadeView];
     [self lg_setHighlightedFadeView:fadeView];
 }
 
+- (void)refreshFadeFrameWithView:(UIView *)fadeView
+{
+    CGRect frame = self.bounds;
+    
+    if (self.diffusionAnimated) {
+        CGFloat width = CGRectGetWidth(frame);
+        CGFloat height = CGRectGetHeight(frame);
+        CGFloat maxWidth = MAX(width, height);
+        frame.size.width = maxWidth;
+        frame.size.height = maxWidth;
+        frame.origin.x = (width - maxWidth)/2.0f;
+        frame.origin.y = (height - maxWidth)/2.0f;
+
+        if (fadeView.layer.cornerRadius != maxWidth/2.0f) {
+            fadeView.layer.cornerRadius = maxWidth/2.0f;
+        }
+    }
+    
+    if (!CGRectEqualToRect(frame, fadeView.frame)) {
+        fadeView.frame = frame;
+    }
+}
+
+//添加扩散动画
+- (void)addDiffusionAnimationWithFadeView:(UIView *)fadeView touchPoint:(CGPoint)touchPoint
+{
+    touchPoint.x -= fadeView.frame.origin.x;
+    touchPoint.y -= fadeView.frame.origin.y;
+    
+    touchPoint.x /= fadeView.frame.size.width;
+    touchPoint.y /= fadeView.frame.size.height;
+    
+    CGRect oldFrame = fadeView.frame;
+    fadeView.layer.anchorPoint =  touchPoint;
+    fadeView.frame = oldFrame;
+    
+    //放大
+    CABasicAnimation * scaleAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    scaleAnimation.fromValue = [NSNumber numberWithDouble:0];
+    scaleAnimation.toValue = [NSNumber numberWithDouble:1.5];
+    scaleAnimation.duration= floatAnimationDuration;
+    scaleAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    NSString *key = [NSString stringWithFormat:@"scale%@",@(random())];
+    [fadeView.layer addAnimation:scaleAnimation forKey:key];
+    
+    //调整圆角
+    CGFloat cornerRadiusDuration = 0.1f;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((scaleAnimation.duration - cornerRadiusDuration) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        CABasicAnimation * corerRadiusAnimation = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
+        corerRadiusAnimation.fromValue = [NSNumber numberWithDouble:fadeView.layer.cornerRadius];
+        corerRadiusAnimation.toValue = [NSNumber numberWithDouble:self.layer.cornerRadius];
+        corerRadiusAnimation.duration= cornerRadiusDuration;
+        corerRadiusAnimation.delegate = self;
+        NSString *key = [NSString stringWithFormat:@"cornerRadius%@",@(random())];
+        [fadeView.layer addAnimation:corerRadiusAnimation forKey:key];
+    });
+}
+
 #pragma mark - getters and setters
+
+- (void)setDiffusionAnimated:(BOOL)diffusionAnimated
+{
+    if (diffusionAnimated) {
+        self.layer.masksToBounds = YES;
+    }
+    
+    NSValue *value = [NSValue value:&diffusionAnimated withObjCType:@encode(BOOL)];
+    objc_setAssociatedObject(self, &LGDiffusionAnimated, value, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (BOOL)diffusionAnimated
+{
+    NSValue *value = objc_getAssociatedObject(self, &LGDiffusionAnimated);
+    if (value) {
+        BOOL diffusion;
+        [value getValue:&diffusion];
+        return diffusion;
+    }
+    return NO;
+}
 
 - (void)lg_setHighlightedFadeAlpha:(CGFloat)alpha
 {

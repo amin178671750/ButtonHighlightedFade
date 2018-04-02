@@ -17,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DD571947207224BE003F883F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		DDDBA882206CE869009343AC /* ButtonHighlightedFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ButtonHighlightedFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDDBA885206CE869009343AC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DDDBA886206CE869009343AC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -45,6 +46,7 @@
 		DDDBA879206CE869009343AC = {
 			isa = PBXGroup;
 			children = (
+				DD571947207224BE003F883F /* README.md */,
 				DDDBA884206CE869009343AC /* ButtonHighlightedFade */,
 				DDDBA883206CE869009343AC /* Products */,
 			);

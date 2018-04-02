@@ -7,11 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
 
 /**
  高亮渐变
  */
-@interface UIButton (HighlightedFade)
+@interface UIButton (HighlightedFade) <CAAnimationDelegate>
+
+/**
+ * @brief 开启扩散动画，默认为NO
+ * @remark addHighlightedFadeAlpha方法不支持此动画, 开启动画则masksToBounds会设置为YES
+ */
+@property (nonatomic, assign) BOOL diffusionAnimated;
 
 /**
  按钮添加高亮变淡
