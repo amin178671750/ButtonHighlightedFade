@@ -81,9 +81,11 @@ static const void *LGDiffusionAnimated = &LGDiffusionAnimated;
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
-    UIView *fadeView = [self lg_highlightedFadeView];
-    if (fadeView) {
-        fadeView.layer.cornerRadius = self.layer.cornerRadius;
+    if (flag) {
+        UIView *fadeView = [self lg_highlightedFadeView];
+        if (fadeView) {
+            fadeView.layer.cornerRadius = self.layer.cornerRadius;
+        }
     }
 }
 
@@ -116,11 +118,12 @@ static const void *LGDiffusionAnimated = &LGDiffusionAnimated;
 - (void)lg_changeFadeWithHighlighted:(BOOL)highlighted touchPoint:(CGPoint)touchPoint
 {
     UIView *fadeView = [self lg_highlightedFadeView] ?: self;
+    
+    BOOL isNotSelf = fadeView != self;
+    
     if (highlighted) {
         //取消高亮的时候需要用到原始透明度
         [self lg_setHighlightedOriginalAlpha:fadeView.alpha];
-        
-        BOOL isNotSelf = fadeView != self;
         //刷新位置，前置
         if (isNotSelf) {
             [self refreshFadeFrameWithView:fadeView];
@@ -190,23 +193,27 @@ static const void *LGDiffusionAnimated = &LGDiffusionAnimated;
     //放大
     CABasicAnimation * scaleAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
     scaleAnimation.fromValue = [NSNumber numberWithDouble:0];
-    scaleAnimation.toValue = [NSNumber numberWithDouble:1.5];
-    scaleAnimation.duration= floatAnimationDuration;
+    scaleAnimation.toValue = [NSNumber numberWithDouble:1.0];
+    scaleAnimation.duration= floatAnimationDuration*0.8;
     scaleAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-    NSString *key = [NSString stringWithFormat:@"scale%@",@(random())];
-    [fadeView.layer addAnimation:scaleAnimation forKey:key];
     
     //调整圆角
-    CGFloat cornerRadiusDuration = 0.1f;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((scaleAnimation.duration - cornerRadiusDuration) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        CABasicAnimation * corerRadiusAnimation = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
-        corerRadiusAnimation.fromValue = [NSNumber numberWithDouble:fadeView.layer.cornerRadius];
-        corerRadiusAnimation.toValue = [NSNumber numberWithDouble:self.layer.cornerRadius];
-        corerRadiusAnimation.duration= cornerRadiusDuration;
-        corerRadiusAnimation.delegate = self;
-        NSString *key = [NSString stringWithFormat:@"cornerRadius%@",@(random())];
-        [fadeView.layer addAnimation:corerRadiusAnimation forKey:key];
-    });
+    CGFloat cornerRadiusDuration = floatAnimationDuration*0.2;
+    CABasicAnimation * corerRadiusAnimation = [CABasicAnimation animationWithKeyPath:@"cornerRadius"];
+    corerRadiusAnimation.fromValue = [NSNumber numberWithDouble:fadeView.layer.cornerRadius];
+    corerRadiusAnimation.toValue = [NSNumber numberWithDouble:self.layer.cornerRadius];
+    corerRadiusAnimation.duration= cornerRadiusDuration;
+    
+    CAAnimationGroup *group = [CAAnimationGroup animation];
+    group.animations = @[scaleAnimation, corerRadiusAnimation];
+    group.delegate = self;
+    group.duration = floatAnimationDuration;
+    
+    scaleAnimation.beginTime = 0.0f;
+    corerRadiusAnimation.beginTime = scaleAnimation.duration;
+    
+    NSString *key = [NSString stringWithFormat:@"scaleCornerRadius"];
+    [fadeView.layer addAnimation:group forKey:key];
 }
 
 #pragma mark - getters and setters

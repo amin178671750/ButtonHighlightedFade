@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "NextViewController.h"
 
 #import "UIButton+HighlightedFade.h"
 
@@ -31,7 +32,7 @@
         //添加圆角及边框
         button.layer.cornerRadius = 5.0f;
         button.layer.masksToBounds = YES;
-        
+
         NSString *title = @"";
         switch (i) {
             case 0:
@@ -96,7 +97,7 @@
                 [button addHighlightedFadeColor:[UIColor yellowColor] alpha:0.5f];
             }
                 break;
-                
+
             default:
                 break;
         }
@@ -116,7 +117,8 @@
 //按钮点击方法
 - (void)buttonPress:(UIButton *)button
 {
-    NSLog(@"点击");
+    NextViewController * nextVC = [[NextViewController alloc] init];
+    [self presentViewController:nextVC animated:YES completion:NULL];
 }
 
 

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DD57194B207240F7003F883F /* NextViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DD57194A207240F7003F883F /* NextViewController.m */; };
 		DDDBA887206CE869009343AC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDBA886206CE869009343AC /* AppDelegate.m */; };
 		DDDBA88A206CE869009343AC /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDBA889206CE869009343AC /* ViewController.m */; };
 		DDDBA88D206CE869009343AC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDDBA88B206CE869009343AC /* Main.storyboard */; };
@@ -18,6 +19,8 @@
 
 /* Begin PBXFileReference section */
 		DD571947207224BE003F883F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		DD571949207240F7003F883F /* NextViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NextViewController.h; sourceTree = "<group>"; };
+		DD57194A207240F7003F883F /* NextViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NextViewController.m; sourceTree = "<group>"; };
 		DDDBA882206CE869009343AC /* ButtonHighlightedFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ButtonHighlightedFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDDBA885206CE869009343AC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DDDBA886206CE869009343AC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -67,6 +70,8 @@
 				DDDBA886206CE869009343AC /* AppDelegate.m */,
 				DDDBA888206CE869009343AC /* ViewController.h */,
 				DDDBA889206CE869009343AC /* ViewController.m */,
+				DD571949207240F7003F883F /* NextViewController.h */,
+				DD57194A207240F7003F883F /* NextViewController.m */,
 				DDDBA89B206CEC90009343AC /* ButtonHighlightedFade */,
 				DDDBA88B206CE869009343AC /* Main.storyboard */,
 				DDDBA88E206CE869009343AC /* Assets.xcassets */,
@@ -157,6 +162,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD57194B207240F7003F883F /* NextViewController.m in Sources */,
 				DDDBA88A206CE869009343AC /* ViewController.m in Sources */,
 				DDDBA895206CE869009343AC /* main.m in Sources */,
 				DDDBA887206CE869009343AC /* AppDelegate.m in Sources */,
